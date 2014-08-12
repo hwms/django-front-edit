@@ -1,0 +1,20 @@
+{% load i18n future staticfiles %}
+{% if user.is_staff %}
+<div>
+<div>{% for editable in editables %}{{ editable }}{% endfor %}</div>
+<link rel="stylesheet" href="{% static "front_edit/css/editable.css" %}">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript">
+    if (typeof jQuery == 'undefined') {
+        document.write('\x3Cscript src="{% static "front_edit/js/jquery.min.js" %}">\x3C/script>');
+    }
+    window.__toolbar_html = '{{ toolbar|escapejs }}';
+    {% block ft_extra %}{% endblock %}
+</script>
+{% for media_item in media %}{{ media_item|safe }}{% endfor %}
+{% block ft_extra_media %}{% endblock %}
+<script>window.__loader_jquery=jQuery.noConflict(true);</script>
+<script src="{% static "front_edit/js/jquery.tools.min.js" %}"></script>
+<script src="{% static "front_edit/js/editable.js" %}"></script>
+</div>
+{% endif %}
