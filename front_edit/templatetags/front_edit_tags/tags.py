@@ -86,15 +86,25 @@ class Edit(Tag):
 
         # get the id, or insert id, or wrap the whole thing
         soup = BS(output)
+        parent = None
         if soup.body:
+            parent = soup.body
             root = soup.body.next
         elif soup.html:
+            parent = soup.html
             root = soup.html.next
         else:
             root = soup
 
         if root.findNextSibling() is not None:
-            root.wrap(soup.new_tag('div', **{"class":"editable"}))
+            if parent is not None:
+                parent.name = 'div'
+                parent['class'] = 'editable'
+                root = parent
+            else:
+                new = soup.new_tag('div', **{"class":"editable"})
+                new.append(root)
+                root = new
 
         try:
             editable_id = root['id']
