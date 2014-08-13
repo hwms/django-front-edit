@@ -122,12 +122,16 @@ class EditLoader(InclusionTag):
     @staticmethod
     def _make_toolbar(context):
         try:
+            editable_obj = context['editable_obj']
+        except KeyError:
+            editable_obj = None
+        try:
             logout_url=reverse(settings.FRONT_EDIT_LOGOUT_URL_NAME)
         except NoReverseMatch as e:
             raise ImproperlyConfigured(ST_LOGOUT_ERROR.format(e))
         return render_to_string(settings.FRONT_EDIT_TOOLBAR_TEMPLATE,
             dict(
-                editable_obj=context['editable_obj'],
+                editable_obj=editable_obj,
                 logout_url=logout_url,
                 REDIRECT_FIELD_NAME=REDIRECT_FIELD_NAME
             ), context)
