@@ -132,8 +132,8 @@
             // Position the editable area's edit link.
             // Apply the editable area's overlay handler.
             link.offset({
-                top: editable.offset().top,
-                left: editable.offset().left - link.outerWidth() - 1
+                top: editable.offset().top + parseInt(link.css('margin-top')),
+                left: editable.offset().left + parseInt(link.css('margin-left')) - link.outerWidth() - 1
             }).overlay(overlay);
 
             // Position the editable area's highlight.
