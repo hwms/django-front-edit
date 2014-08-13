@@ -1,10 +1,14 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from future.utils import iteritems
 
 def register_setting(setting, prefix, modifiers=None):
     # override default
     master_name = '{}_SETTINGS'.format(prefix)
-    setting.update(getattr(settings, master_name, dict()))
+    try:
+        setting.update(getattr(settings, master_name, dict()))
+    except ImproperlyConfigured:
+        return
     if modifiers is not None:
         for key in setting:
             if key in modifiers:
