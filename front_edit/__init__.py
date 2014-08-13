@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from .conf import register_setting
 
-__version_raw__ = ['1', '0b1']
+__version_raw__ = ['1', '0b2']
 __version__ = VERSION = '.'.join(__version_raw__)
 def get_version():# pragma: no cover
     '''get the version number'''
