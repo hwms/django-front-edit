@@ -55,6 +55,12 @@ In your Django settings.py file insert the following in an appropriate place:
 
     ...
 
+In your main urls.py file:
+
+    ...
+    url(r'', include('front_edit.urls')),
+    ...
+
 There is nothing to syncdb or migrate.
 
 ##Usage
