@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 import front_edit
 
-description = long_description = "Front end editing for Django"
+description = long_description = "Front end editing for Django."
 if os_path.exists('README.rst'):
     long_description = open('README.rst').read()
 

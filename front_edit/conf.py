@@ -1,8 +1,13 @@
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+try:
+    from django.conf import settings
+    from django.core.exceptions import ImproperlyConfigured
+except ImportError:
+    settings = None # this is for setup.py when registering in pypi
 from future.utils import iteritems
 
 def register_setting(setting, prefix, modifiers=None):
+    if settings is None:
+        return
     # override default
     master_name = '{}_SETTINGS'.format(prefix)
     try:
