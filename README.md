@@ -78,7 +78,7 @@ This app uses template tags for all its functionality.
 
 Make sure to load up front\_edit\_tags in your template.
 
-> ####Edit...EndEdit
+> **Edit...EndEdit**
 >> **Arguments:** object.field...[class\_name]
 
 >> **object.field:** This argument consist of multiple arguments of dot separated
@@ -90,7 +90,7 @@ form, edit button, and overlay in case you need to adjust them.
 
 >> This tag specifies an editable region.
 
-> ####EditLoader
+> **EditLoader**
 >> **Arguments:** None
 
 >> This tag includes all the boilerplate to make the front-end editing work.
@@ -101,7 +101,7 @@ This tag should always be right before the end `<body>` tag in your base templat
 There is one command that you can call if you need to reposition the edit elements.
 You should call this if any JavaScript will change the offset of in-flow elements.
 
-> ####$.front_edit('refresh');
+    $.front_edit('refresh');
 
 ###Example
 
