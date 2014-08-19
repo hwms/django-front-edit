@@ -80,6 +80,10 @@ class Edit(Tag):
             getattr(model, field)
             fields.append(field)
 
+        if not user.has_perm('{}.change_{}'.format(model._meta.app_label,
+            model._meta.model_name)):
+            return nodelist.render(context)
+
         context.push()
         output = unicode(nodelist.render(context))#.strip('\r\n').strip()
         context.pop()

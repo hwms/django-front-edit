@@ -66,7 +66,7 @@
     text-transform: uppercase;
 }
 
-#editable-toolbar.toolbar-open::before {
+#editable-toolbar::before {
     content: '';
     display: inline-block;
     vertical-align: middle;

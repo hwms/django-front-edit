@@ -1,7 +1,7 @@
-;!function(window, document, $, _$) {
+!function(window, document, $, _$) {
     var body = $(document.body),
         w = $(window),
-        cookie = 'admin-toolbar';
+        cookie = 'front-edit-admin-toolbar';
 
     function editableFormSubmit(e) {
         e.preventDefault();
@@ -152,7 +152,7 @@
     w.load($.proxy(edit.load, edit));
     _$['front_edit'] = function() {
         var method = arguments[0],
-            args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            args = 2 <= arguments.length ? [].slice.call(arguments, 1) : [];
         if (commands[method]) {
             return commands[method].apply(null, args);
         }

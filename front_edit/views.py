@@ -31,12 +31,19 @@ def try_cast_or_404(cast_type, input):
 @user_passes_test(lambda u:u.is_staff)
 def front_end_update_view(request, *args, **kwargs):
     if request.is_ajax():
+        user = request.user
+
         app_label = try_cast_or_404(str, kwargs.get('app_label', None))
         model_name = try_cast_or_404(str, kwargs.get('model_name', None))
+
+        if not user.has_perm('{}.change_{}'.format(app_label, model_name)):
+            return http.HttpResponseForbidden()
+
         pk = try_cast_or_404(str, kwargs.get('pk', None))
         fields = try_cast_or_404(str, request.POST.get('form_fields', None))
         model = ContentType.objects.get(app_label=app_label,
             model=model_name).model_class()
+
         form_class = make_form(model, fields.split(','))
         try:
             form = form_class(instance=model.objects.get(pk=pk),

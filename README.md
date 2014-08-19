@@ -1,4 +1,12 @@
-#Installation
+#Django-Front-Edit
+
+##Description
+
+A front end editing app for django. This app allows one to edit dynamic data on
+the front end of a website when logged in as a staff member. The app allows
+the editing of dynamic content within any element (See Example below).
+
+##Installation
 
 You must have setuptools installed.
 
@@ -32,7 +40,6 @@ django-classy-tags >= 0.5.1 located at: [https://github.com/ojii/django-classy-t
 
 [git classy]: https://github.com/ojii/django-classy-tags
 [pypi classy]: https://pypi.python.org/pypi/django-classy-tags
-
 
 ##Integration
 In your Django settings.py file insert the following in an appropriate place:
@@ -75,7 +82,8 @@ Make sure to load up front\_edit\_tags in your template.
 >> **Arguments:** object.field...[class\_name]
 
 >> **object.field:** This argument consist of multiple arguments of dot separated
-object/field variables.
+object/field variables. Currently only fields within the same model object can
+be edited per tag.
 
 >> **class\_name:** This optional argument is the class name(s) to put on the
 form, edit button, and overlay in case you need to adjust them.
@@ -88,6 +96,13 @@ form, edit button, and overlay in case you need to adjust them.
 >> This tag includes all the boilerplate to make the front-end editing work.
 This tag should always be right before the end `<body>` tag in your base template.
 
+###JavaScript
+
+There is one command that you can call if you need to reposition the edit elements.
+You should call this if any JavaScript will change the offset of in-flow elements.
+
+> ####$.front_edit('refresh');
+
 ###Example
 
     {% load front_edit_tags %}
@@ -95,12 +110,40 @@ This tag should always be right before the end `<body>` tag in your base templat
     <html>
     <head></head>
     <body>
-        {% edit object.text_field object.char_field "class_name" %}
         <div>
-            <span>{{ object.text_field }}</span>
-            <span>{{ object.char_field }}</span>
+            <!-- In a list -->
+            <ul>
+                {% for object in objects %}
+                {% edit object.text_field object.char_field "class_name" %}
+                <li>
+                    <span>{{ object.text_field }}</span>
+                    <span>{{ object.char_field }}</span>
+                </li>
+                {% endedit %}
+                {% endfor %}
+            </ul>
+            <!-- In a table -->
+            <table>
+                <tbody>
+                    <tr>
+                        {% for object in objects %}
+                        {% edit object.text_field object.char_field "class_name" %}
+                        <td>
+                            <span>{{ object.text_field }}</span>
+                            <span>{{ object.char_field }}</span>
+                        </td>
+                        {% endedit %}
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        {% endedit %}
+        <div>
+            <!-- On a span -->
+            {% edit object.text_field "class_name" %}
+            <span>{{ object.text_field }}</span>
+            {% endedit %{
+        </div>
         {% edit_loader %}
     </body>
     </html>
@@ -139,3 +182,18 @@ or file field that has a Media class on its widget.
 > **Default:** 'front\_edit/includes/editable.html'
 
 > This template is the editable. Which includes the form, edit button, and overlay.
+
+##Custom Media and JS variables
+
+If the FRONT\_EDIT\_CUSTOM\_FIELDS setting doesn't satisfy your needs you will
+need to do the following.
+
+1. Change FRONT\_EDIT\_LOADER\_TEMPLATE to your own template, it should
+have a different name than 'front_edit/loader.html'.
+
+2. In your template extend 'front_edit/loader.html'.
+
+3. Use the block 'ft\_extra' to set or run javascript code. No script tags
+are needed.
+
+4. Use the block 'ft\_extra\_media' to define media such as CSS or JS files.
