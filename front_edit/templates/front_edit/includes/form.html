@@ -1,6 +1,8 @@
 {% load url from future %}
 <form id="form_{{ editable_id }}" action="{% url 'ft_edit' app_label model_name pk %}" method="post" class="editable-form{% if edit_class %} {{edit_class}}{% endif %}" style="display:none">
     {% include 'front_edit/includes/form_fields.html' %}
-    <input type="submit" value="Save" class="btn">
-    <input type="button" value="Cancel" class="btn">
+    <div class="action-buttons">
+        <input type="button" value="Cancel" class="btn">
+        <input type="submit" value="Save" class="btn">
+    </div>
 </form>

@@ -1,7 +1,10 @@
 !function(window, document, $, _$) {
     var body = $(document.body),
         w = $(window),
-        cookie = 'front-edit-admin-toolbar';
+        cookieName = 'front-edit-admin-toolbar',
+        cookieValue = '1',
+        iconOpen = '&#8677;',
+        iconClose = '&#8676;';
 
     function editableFormSubmit(e) {
         e.preventDefault();
@@ -66,14 +69,14 @@
         });
 
         // Add the toolbar HTML and handlers.
-        var closed = this.getCookie(true);
+        var closed = this.cookieToolbarClosed();
         body.append(window.__toolbar_html);
 
         this.toolbar = $('#editable-toolbar');
         this.toggle = this.toolbar.children().first();
         this.links = $('.editable-link');
 
-        this.toggle.text('<<');
+        this.toggle.html(iconClose);
         this.toggleToolbar(closed);
 
         this.toggle.click($.proxy(function(e) {
@@ -82,12 +85,15 @@
         }, this));
     }
 
-    editable.prototype.getCookie = function(default_val){
-        var at = ('; ' + document.cookie).indexOf('; ' + cookie + '=');
+    editable.prototype.cookieToolbarClosed = function(){
+        var at = ('; ' + document.cookie).indexOf('; ' + cookieName + '=');
+
         if (at > -1) {
-            return document.cookie.substr(at + cookie.length + 1).split(';')[0];
+            at += cookieName.length + 1
+            return document.cookie.substr(at).split(';')[0] === cookieValue;
         }
-        return default_val
+
+        return false;
     }
 
     editable.prototype.toggleToolbar = function(opened){
@@ -95,19 +101,19 @@
     }
 
     editable.prototype.openToolbar= function() {
-        this.toggle.text('<<');
+        this.toggle.html(iconClose);
         this.toolbar.addClass('toolbar-open');
         this.links.addClass('editable-link-show');
 
-        document.cookie = cookie + '=; path=/';
+        document.cookie = cookieName + '=; path=/';
     }
 
     editable.prototype.closeToolbar = function() {
-        this.toggle.text('>>');
+        this.toggle.html(iconOpen);
         this.toolbar.removeClass('toolbar-open');
         this.links.removeClass('editable-link-show');
 
-        document.cookie = cookie + '=1; path=/';
+        document.cookie = cookieName + '=' + cookieValue + '; path=/';
     }
 
     editable.prototype.positionEditButtons = function() {
@@ -152,7 +158,7 @@
     w.load($.proxy(edit.load, edit));
     _$['front_edit'] = function() {
         var method = arguments[0],
-            args = 2 <= arguments.length ? [].slice.call(arguments, 1) : [];
+            args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
         if (commands[method]) {
             return commands[method].apply(null, args);
         }

@@ -16,61 +16,76 @@
 }
 
 #editable-toolbar {
-    cursor: default;
-    padding-left: 2px !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 98;
+    background: #FFFCC3;
+    border: 1px solid #CCC;
+    border-top-style: none;
+    border-left-style: none;
 }
 
 #editable-toolbar a {
-    border-left: 1px solid #bbb;
-    padding: 0 8px 0 12px;
+    padding: 0 10px;
     display: none;
+    color: #222;
+    font-size: 11px;
+    line-height: 29px;
+    text-transform: uppercase;
+    vertical-align: top;
+}
+
+#editable-toolbar a:before {
+    content: "";
+    border-left: 1px solid #BBB;
+    height: 10px;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    top: 9px;
+    left: -10px;
 }
 
 #editable-toolbar a:first-child {
-    display: inline-block !important;
-    border-left: 0px !important;
-    font-size: 14px !important;
-    line-height: 14px !important;
-    font-weight: bold !important;
-    text-decoration: none;
+    display: inline-block;
+    vertical-align: top;
+    border-left: 0px;
+    font-size: 14px;
+    line-height: 29px;
+    font-weight: 700;
 }
 
-.editable-highlight {border: 1px solid #ccc;}
-.editable-link {display: block;}
+#editable-toolbar a:first-child:before {
+    display: none;
+}
 
-#editable-toolbar,
-.editable-highlight,
+.editable-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 98;
+    border: 1px solid #ccc;
+}
+
 .editable-link {
     position: absolute;
     top: 0;
     left: 0;
     z-index: 98;
-}
-
-#editable-toolbar, .editable-link {
-    background: #fffcc3;
-    float: left;
-    cursor: pointer;
-    padding: 6px 8px;
-    white-space: nowrap;
-    border: 1px solid #ccc;
-}
-
-#editable-toolbar a,
-.editable-link {
+    display: block;
     text-decoration: none;
     color: #222 !important;
     font-size: 11px !important;
     line-height: 11px !important;
     font-weight: normal;
     text-transform: uppercase;
-}
-
-#editable-toolbar::before {
-    content: '';
-    display: inline-block;
-    vertical-align: middle;
-    height: 18px;
+    background: #FFFCC3;
+    float: left;
+    cursor: pointer;
+    padding: 6px 8px;
+    white-space: nowrap;
+    border: 1px solid #CCC;
 }
 
 #editable-toolbar.toolbar-open a {
@@ -128,18 +143,33 @@
     font-style: italic;
 }
 .editable-form label {
-    color: #000 !important;
+    color: #000;
     float: none;
-    font-weight: bold !important;
-    font-size: 15px !important;
-    line-height: 1.1em !important;
-    text-transform: capitalize !important;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.1em;
+    text-transform: capitalize;
 }
+.editable-form .action-buttons {
+    text-align: right;
+}
+
 .editable-form .btn {
     cursor: pointer;
+    display: inline-block;
+    vertical-align: top;
     border-radius: 3px;
-    float: right;
-    margin: 15px 0 0 15px;
-    padding: 5px 15px;
+    margin: 15px 0 0 10px;
     width: auto;
+    border: 1px solid #CCC;
+    border-bottom-color: #B3B3B3;
+    background-color: #F5F5F5;
+    background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
+    color: #333;
+    padding: 4px 12px;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+
+.editable-form .btn:hover {
+    background-image: linear-gradient(to bottom, #F1F1F1, #E6E6E6);
 }
