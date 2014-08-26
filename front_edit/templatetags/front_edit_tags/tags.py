@@ -158,7 +158,7 @@ class EditLoader(InclusionTag):
             editables.append(render_to_string(
                 settings.FRONT_EDIT_EDITABLE_TEMPLATE, dict(
                     form_for_fields=make_form(model.__class__, defer['fields'])(
-                        instance=model),
+                        instance=model, auto_id='{}_%s'.format(defer['editable_id'])),
                     editable_id=defer['editable_id'],
                     app_label=model._meta.app_label,
                     model_name=model.__class__.__name__.lower(),

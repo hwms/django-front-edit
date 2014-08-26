@@ -1,31 +1,40 @@
-!function(window, document, $, _$) {
-    var body = $(document.body),
-        w = $(window),
-        cookieName = 'front-edit-admin-toolbar',
-        cookieValue = '1',
-        iconOpen = '&#8677;',
-        iconClose = '&#8676;';
+!function(window, $) {
+    // Front edit namespace
+    window.djangoFrontEdit = window.djangoFrontEdit || {};
+
+    var body = $(document.body);
+    var w = $(window);
+    var cookieName = 'front-edit-admin-toolbar';
+    var cookieValue = '1';
+    var iconOpen = '&#8677;';
+    var iconClose = '&#8676;';
+
+    // Closure variables
+    var toolbarElement;
+    var toggleElement;
+    var linkElements;
 
     function editableFormSubmit(e) {
         e.preventDefault();
-        var form = $(this),
-            loading = $('#editable-loading'),
-            showError = function(msg) {
-                if (msg) {
-                    msg = ': ' + msg;
-                } else {
-                    msg = '';
-                }
-                alert('An error occurred' + msg);
-                loading.hide();
-                form.show();
-            };
+        
+        var form = $(e.currentTarget);
+        var loading = $('#editable-loading');
+
+        function showError(msg) {
+            if (msg) {
+                msg = ': ' + msg;
+            } else {
+                msg = '';
+            }
+            alert('An error occurred' + msg);
+            loading.hide();
+            form.show();
+        }
+
+        form.trigger('django-front-edit-form-pre-serialize');
+
         form.hide();
         loading.show();
-
-        if (window.__loader_presubmit) {
-            window.__loader_presubmit(e, form, loading);
-        }
 
         $.ajax(form.attr('action'), {
             type: form.attr('method'),
@@ -44,48 +53,43 @@
         });
     }
 
-    var editable = function(commands){
-        commands["refresh"] = this.positionEditButtons;
-    }
-
-    editable.prototype.load = function(){
+    function load(){
         // Add AJAX submit handler for each editable form.
         $('.editable-form').submit(editableFormSubmit);
 
-        this.positionEditButtons();
+        linkElements = $('.editable-link');
+
+        positionEditButtons();
         body.add('.editable');
-        w.resize($.proxy(function(e) {
-            this.positionEditButtons();
-        }, this));
+        w.on('resize', positionEditButtons);
 
         // Show/hide the editable area's highlight when mousing over/out the of
         // the edit link.
         $('.editable-link').on('mouseenter', function(e) {
-            $(this).next('.editable-highlight').css('visibility', 'visible');
+            $(e.currentTarget).next('.editable-highlight').css('visibility', 'visible');
         });
 
         $('.editable-link').on('mouseleave', function(e) {
-            $(this).next('.editable-highlight').css('visibility', 'hidden');
+            $(e.currentTarget).next('.editable-highlight').css('visibility', 'hidden');
         });
 
         // Add the toolbar HTML and handlers.
-        var closed = this.cookieToolbarClosed();
-        body.append(window.__toolbar_html);
+        var closed = cookieToolbarClosed();
+        body.append(window.djangoFrontEdit.toolbarHtml);
 
-        this.toolbar = $('#editable-toolbar');
-        this.toggle = this.toolbar.children().first();
-        this.links = $('.editable-link');
+        toolbarElement = $('#editable-toolbar');
+        toggleElement = toolbarElement.children().first();
 
-        this.toggle.html(iconClose);
-        this.toggleToolbar(closed);
+        toggleElement.html(iconClose);
+        toggleToolbar(closed);
 
-        this.toggle.click($.proxy(function(e) {
+        toggleElement.click(function(e) {
             e.preventDefault();
-            this.toggleToolbar(this.toolbar.hasClass('toolbar-open'));
-        }, this));
+            toggleToolbar(toolbarElement.hasClass('toolbar-open'));
+        });
     }
 
-    editable.prototype.cookieToolbarClosed = function(){
+    function cookieToolbarClosed(){
         var at = ('; ' + document.cookie).indexOf('; ' + cookieName + '=');
 
         if (at > -1) {
@@ -96,44 +100,46 @@
         return false;
     }
 
-    editable.prototype.toggleToolbar = function(opened){
-        opened?this.closeToolbar():this.openToolbar();
+    function toggleToolbar(opened) {
+        opened ? closeToolbar() : openToolbar();
     }
 
-    editable.prototype.openToolbar= function() {
-        this.toggle.html(iconClose);
-        this.toolbar.addClass('toolbar-open');
-        this.links.addClass('editable-link-show');
+    function openToolbar() {
+        toggleElement.html(iconClose);
+        toolbarElement.addClass('toolbar-open');
+        linkElements.addClass('editable-link-show');
 
         document.cookie = cookieName + '=; path=/';
     }
 
-    editable.prototype.closeToolbar = function() {
-        this.toggle.html(iconOpen);
-        this.toolbar.removeClass('toolbar-open');
-        this.links.removeClass('editable-link-show');
+    function closeToolbar() {
+        toggleElement.html(iconOpen);
+        toolbarElement.removeClass('toolbar-open');
+        linkElements.removeClass('editable-link-show');
 
         document.cookie = cookieName + '=' + cookieValue + '; path=/';
     }
 
-    editable.prototype.positionEditButtons = function() {
-        $('.editable-link').each(function() {
-            var link = $(this),
-                editable = $(link.attr('href')),
-                form = link.prev('form'),
-                highlight = link.next('.editable-highlight'),
-                expose = {
-                    color: '#333',
-                    loadSpeed: 200,
-                    opacity: 0.9
-                },
-                overlay = {
-                    expose: expose,
-                    closeOnClick: true,
-                    close: ':button',
-                    left: 'center',
-                    top: 'center'
-                };
+    function positionEditButtons() {
+        linkElements.each(function(i, link) {
+            var link = $(link);
+            var editable = $(link.attr('href'));
+            var form = link.prev('form');
+            var highlight = link.next('.editable-highlight');
+
+            var expose = {
+                color: '#333',
+                loadSpeed: 200,
+                opacity: 0.9
+            };
+
+            var overlay = {
+                expose: expose,
+                closeOnClick: true,
+                close: ':button',
+                left: 'center',
+                top: 'center'
+            };
 
             // Position the editable area's edit link.
             // Apply the editable area's overlay handler.
@@ -153,14 +159,8 @@
         });
     }
 
-    var commands = {},
-        edit = new editable(commands);
-    w.load($.proxy(edit.load, edit));
-    _$['front_edit'] = function() {
-        var method = arguments[0],
-            args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
-        if (commands[method]) {
-            return commands[method].apply(null, args);
-        }
-    };
-}(this, document, window.__loader_jquery, jQuery);
+    w.on('load', load);
+
+    window.djangoFrontEdit.refresh = positionEditButtons;
+    window.djangoFrontEdit.jQuery = $;
+}(this, jQuery);

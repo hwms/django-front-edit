@@ -101,7 +101,7 @@ This tag should always be right before the end `<body>` tag in your base templat
 There is one command that you can call if you need to reposition the edit elements.
 You should call this if any JavaScript will change the offset of in-flow elements.
 
-    $.front_edit('refresh');
+    djangoFrontEdit.refresh();
 
 ###Example
 
