@@ -100,12 +100,18 @@ class Edit(Tag):
         else:
             root = soup
 
-        if root.findNextSibling() is not None:
+        if root is None:
+            # not sure what your expecting us to do, you gave us nothing
+            root = soup.new_tag('div', **{"class":"editable"})
+        elif root.findNextSibling() is not None:
+            # we are not alone in here
             if parent is not None:
+                # set parent as root
                 parent.name = 'div'
                 parent['class'] = 'editable'
                 root = parent
             else:
+                # make a new parent
                 new = soup.new_tag('div', **{"class":"editable"})
                 new.append(root)
                 root = new

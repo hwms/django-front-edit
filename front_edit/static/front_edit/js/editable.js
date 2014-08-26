@@ -16,7 +16,7 @@
 
     function editableFormSubmit(e) {
         e.preventDefault();
-        
+
         var form = $(e.currentTarget);
         var loading = $('#editable-loading');
 
@@ -121,6 +121,9 @@
     }
 
     function positionEditButtons() {
+        if (typeof linkElements === 'undefined'){
+            return;
+        }
         linkElements.each(function(i, link) {
             var link = $(link);
             var editable = $(link.attr('href'));
