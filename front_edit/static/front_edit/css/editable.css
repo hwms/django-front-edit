@@ -113,10 +113,14 @@
     display: block;
     clear: both;
 }
-.editable-form table, .editable-form textarea, .editable-form input {
+.editable-form table,
+.editable-form textarea,
+.editable-form input {
     font-size: 14px;
     margin: .5em 0;
     width: 100%;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 .mceToolbar table {
     margin: 0 !important;
@@ -172,4 +176,9 @@
 
 .editable-form .btn:hover {
     background-image: linear-gradient(to bottom, #F1F1F1, #E6E6E6);
+}
+
+#exposeMask {
+    /* Prevent the lightbox mask from covering CKEditor full screen mode */
+    z-index: 9994 !important;
 }
