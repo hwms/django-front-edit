@@ -10,13 +10,13 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.utils.safestring import mark_safe
 from django.utils.importlib import import_module
 from django.utils.functional import lazy
-from django.conf import settings
 
 from classytags.core import Tag, Options
 from classytags.helpers import InclusionTag
 from classytags.arguments import Argument
 
 from ...forms import make_form
+from ...default_settings import get_setting
 from ... import DEFER
 
 from . import register
@@ -34,7 +34,7 @@ ST_LOGOUT_ERROR = ("Set FRONT_EDIT_LOGOUT_URL_NAME to the url name of your logou
     "view in your settings.py file: {}")
 
 MEDIA = []
-for field_path in settings.FRONT_EDIT_CUSTOM_FIELDS:
+for field_path in get_setting('FRONT_EDIT_CUSTOM_FIELDS'):
     try:
         module_path, field_name = field_path.rsplit('.', 1)
         module = import_module(module_path)
@@ -57,7 +57,7 @@ class Edit(Tag):
     def render_tag(self, context, models_fields, edit_class, nodelist):
         # is this thing on?
         user = context['user']
-        if not user.is_staff or not settings.FRONT_EDIT_INLINE_EDITING_ENABLED:
+        if not user.is_staff or not get_setting('FRONT_EDIT_INLINE_EDITING_ENABLED'):
             return nodelist.render(context)
 
         # make uuid stuff and check configuration
@@ -137,7 +137,7 @@ class EditLoader(InclusionTag):
         """
         Returns the template to be used for the current context and arguments.
         """
-        return settings.FRONT_EDIT_LOADER_TEMPLATE
+        return get_setting('FRONT_EDIT_LOADER_TEMPLATE')
 
     @staticmethod
     def _make_toolbar(context):
@@ -146,10 +146,10 @@ class EditLoader(InclusionTag):
         except KeyError:
             editable_obj = None
         try:
-            logout_url=reverse(settings.FRONT_EDIT_LOGOUT_URL_NAME)
+            logout_url=reverse(get_setting('FRONT_EDIT_LOGOUT_URL_NAME'))
         except NoReverseMatch as e:
             raise ImproperlyConfigured(ST_LOGOUT_ERROR.format(e))
-        return render_to_string(settings.FRONT_EDIT_TOOLBAR_TEMPLATE,
+        return render_to_string(get_setting('FRONT_EDIT_TOOLBAR_TEMPLATE'),
             dict(
                 editable_obj=editable_obj,
                 logout_url=logout_url,
@@ -162,7 +162,7 @@ class EditLoader(InclusionTag):
         for defer in deferred:
             model = defer['model']
             editables.append(render_to_string(
-                settings.FRONT_EDIT_EDITABLE_TEMPLATE, dict(
+                get_setting('FRONT_EDIT_EDITABLE_TEMPLATE'), dict(
                     form_for_fields=make_form(model.__class__, defer['fields'])(
                         instance=model, auto_id='{}_%s'.format(defer['editable_id'])),
                     editable_id=defer['editable_id'],
@@ -175,7 +175,7 @@ class EditLoader(InclusionTag):
 
     def get_context(self, context):
         user = context['user']
-        if user.is_staff and settings.FRONT_EDIT_INLINE_EDITING_ENABLED:
+        if user.is_staff and get_setting('FRONT_EDIT_INLINE_EDITING_ENABLED'):
             try:
                 context['editables'] = self._make_editables(context,
                     context[DEFER])
