@@ -1,19 +1,26 @@
+from re import search as re_search, M as re_M
 from os import path as os_path
+from codecs import open as codecs_open
 from setuptools import setup, find_packages
 
-import front_edit
+def read(*parts):
+    file_path = os_path.join(os_path.dirname(__file__), *parts)
+    return codecs_open(file_path, encoding='utf-8').read()
+
+def find_version(*parts):
+    version_file = read(*parts)
+    version_match = re_search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+        version_file, re_M)
+    if version_match:
+        return str(version_match.group(1))
+    raise RuntimeError("Unable to find version string.")
 
 description = long_description = "Front end editing for Django."
 if os_path.exists('README.rst'):
     long_description = open('README.rst').read()
 
-version = front_edit.VERSION
-
-def read(fname):
-    return open(os_path.join(os_path.dirname(__file__), fname)).read()
-
 setup(name='django-front-edit',
-    version=version,
+    version=find_version('front_edit', '__init__.py'),
     description=description,
     long_description=long_description,
     classifiers=[

@@ -1,17 +1,18 @@
 from __future__ import unicode_literals
-from future.builtins import str
+from .compat import str
 
 from json import dumps as json_dumps
 
 from django import http
-from django.template import RequestContext
-from django.template.loader import render_to_string
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from .forms import make_form
+from .utils import set_front_edited
 
 def try_cast_or_404(cast_type, input):
     ''' Used for GET variables i.e. when you expect to receive an int
@@ -46,8 +47,10 @@ def front_end_update_view(request, *args, **kwargs):
 
         form_class = make_form(model, fields.split(','))
         try:
-            form = form_class(instance=model.objects.get(pk=pk),
-                data=request.POST)
+            instance = model.objects.get(pk=pk)
+            # for non-recursive cache busting
+            set_front_edited(instance)
+            form = form_class(instance=instance, data=request.POST)
         except model.DoesNotExist:
             raise http.Http404()
         valid = form.is_valid()

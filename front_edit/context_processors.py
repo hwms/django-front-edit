@@ -1,2 +1,2 @@
-from . import DEFER
-defer_edit = lambda r:{DEFER:[]}
+from .settings import appsettings
+defer_edit = lambda r: {appsettings.DEFER_KEY:[]}

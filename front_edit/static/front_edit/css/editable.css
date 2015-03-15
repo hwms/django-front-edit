@@ -115,18 +115,23 @@
 }
 .editable-form table,
 .editable-form textarea,
-.editable-form input {
+.editable-form input,
+.editable-form select {
     font-size: 14px;
     margin: .5em 0;
     width: 100%;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+.editable-form textarea,
+.editable-form input {
+    padding: 0 5px;
+}
 .mceToolbar table {
     margin: 0 !important;
     width: auto !important;
 }
-.editable-form .booleanfield, .editable-form select {width: auto;}
+.editable-form .booleanfield {width: auto;}
 .editable-form input.datetimefield {
     margin-left: 8px;
     width: 80px;
@@ -176,6 +181,12 @@
 
 .editable-form .btn:hover {
     background-image: linear-gradient(to bottom, #F1F1F1, #E6E6E6);
+}
+
+.editable-form .help-block {
+    line-height: 1;
+    margin: 0;
+    margin-bottom: 1em;
 }
 
 #exposeMask {
