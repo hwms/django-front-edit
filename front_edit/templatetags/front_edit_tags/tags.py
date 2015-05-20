@@ -254,18 +254,23 @@ class EditLoader(InclusionTag):
         editables = []
         for defer in deferred:
             model = defer['model']
-            form_for_fields = make_form(model.__class__, defer['fields'])(
+            model_class = model.__class__
+            form_for_fields = make_form(model_class, defer['fields'])(
                 instance=model, auto_id='{}_%s'.format(defer['editable_id']))
             try:
                 self.media.add(str(form_for_fields.media))
             except AttributeError:
                 pass
+            if model._deferred:
+                model_name = model_class.__base__.__name__.lower()
+            else:
+                model_name = model_class.__name__.lower()
             editables.append(render_to_string(
                 appsettings.EDITABLE_TEMPLATE, dict(
                     form_for_fields=form_for_fields,
                     editable_id=defer['editable_id'],
                     app_label=model._meta.app_label,
-                    model_name=model.__class__.__name__.lower(),
+                    model_name=model_name,
                     pk=model.pk,
                     edit_class=defer['edit_class'],
                 ), context))
