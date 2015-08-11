@@ -1,0 +1,10 @@
+{% load i18n future staticfiles %}
+{% url "admin:index" as admin_index_url %}
+{% spaceless %}
+<div id="editable-toolbar">
+    <a href="#"></a>
+    <a href="{{ editable_obj.get_admin_url|default:admin_index_url }}">{% trans "Admin" %}</a>
+    <a href="{{ logout_url }}?{{ REDIRECT_FIELD_NAME }}={{ request.path }}">{% trans "Logout" %}</a>
+</div>
+{% endspaceless %}
+<img id="editable-loading" src="{% static "front_edit/images/loading.gif" %}">

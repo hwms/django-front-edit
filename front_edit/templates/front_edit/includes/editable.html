@@ -1,0 +1,3 @@
+{% include 'front_edit/includes/form.html' %}
+<a style="visibility:hidden;" href="{{ admin_url }}" data-editable-selector="#{{ editable_id }}" class="editable-link {% if edit_class %}{{ edit_class }}{% endif %} {% if admin_url %}editable-admin-link{% endif %}" rel="#form_{{ editable_id }}" {% if admin_url %}target="_blank"{% endif %}>Edit</a>
+<div style="visibility:hidden;" class="editable-highlight{% if edit_class %} {{edit_class}}{% endif %}"></div>

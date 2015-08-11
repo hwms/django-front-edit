@@ -1,0 +1,20 @@
+{% load i18n future staticfiles %}
+
+{% if user.is_staff %}
+    <link rel="stylesheet" href="{% static "front_edit/css/editable.css" %}">
+    {% if jquery_builtin %}<script src="{{ jquery_cdn }}{{ jquery_version }}/jquery.min.js"></script>{% endif %}
+    <script type="text/javascript">
+        {% if jquery_builtin %}if (typeof jQuery == 'undefined') {
+            document.write('\x3Cscript src="{% static jquery_backup %}">\x3C/script>');
+        }{% endif %}
+        window.djangoFrontEdit = window.djangoFrontEdit || {};
+        window.djangoFrontEdit.toolbarHtml = '{{ toolbar|escapejs }}';
+        {% block ft_extra %}{% endblock %}
+    </script>
+    {% for media_item in media %}{{ media_item }}{% endfor %}
+    {% block ft_extra_media %}{% endblock %}
+    <script src="{% static "front_edit/js/jquery.tools.min.js" %}"></script>
+    <script src="{% static "front_edit/js/editable.js" %}"></script>
+    <div>{% for editable in editables %}{{ editable }}{% endfor %}</div>
+    {% if jquery_builtin %}<script>jQuery.noConflict(true);</script>{% endif %}
+{% endif %}

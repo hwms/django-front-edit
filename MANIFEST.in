@@ -1,0 +1,8 @@
+include AUTHORS
+include LICENSE
+include README.md
+
+recursive-include front_edit/static *
+recursive-include front_edit/templates *
+
+global-exclude .DS_Store

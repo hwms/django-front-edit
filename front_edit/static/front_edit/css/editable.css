@@ -1,0 +1,195 @@
+.editable {
+    display: inline-block;
+}
+
+#editable-loading {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    height: 19px;
+    width: 220px;
+    z-index: 10001;
+}
+
+#editable-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 98;
+    background: #FFFCC3;
+    border: 1px solid #CCC;
+    border-top-style: none;
+    border-left-style: none;
+}
+
+#editable-toolbar a {
+    padding: 0 10px;
+    display: none;
+    color: #222;
+    font-size: 11px;
+    line-height: 29px;
+    text-transform: uppercase;
+    vertical-align: top;
+}
+
+#editable-toolbar a:before {
+    content: "";
+    border-left: 1px solid #BBB;
+    height: 10px;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    top: 9px;
+    left: -10px;
+}
+
+#editable-toolbar a:first-child {
+    display: inline-block;
+    vertical-align: top;
+    border-left: 0px;
+    font-size: 14px;
+    line-height: 29px;
+    font-weight: 700;
+}
+
+#editable-toolbar a:first-child:before {
+    display: none;
+}
+
+.editable-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 98;
+    border: 1px solid #ccc;
+}
+
+.editable-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 98;
+    display: block;
+    text-decoration: none;
+    color: #222 !important;
+    font-size: 11px !important;
+    line-height: 11px !important;
+    font-weight: normal;
+    text-transform: uppercase;
+    background: #FFFCC3;
+    float: left;
+    cursor: pointer;
+    padding: 6px 8px;
+    white-space: nowrap;
+    border: 1px solid #CCC;
+}
+
+#editable-toolbar.toolbar-open a {
+    display: inline-block;
+}
+
+.editable-link.editable-link-show {
+    visibility: visible !important;
+}
+
+.editable-form {
+    position: relative;
+    color: #000;
+    background: #fffcc3;
+    border: 1px solid #000;
+    border-radius: 4px;
+    box-shadow: 0 0 80px #222;
+    line-height: 1em;
+    padding: 20px;
+    margin: 0 auto;
+    min-width: 350px;
+}
+.editable-form:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+.editable-form table,
+.editable-form textarea,
+.editable-form input,
+.editable-form select {
+    font-size: 14px;
+    margin: .5em 0;
+    width: 100%;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.editable-form textarea,
+.editable-form input {
+    padding: 0 5px;
+}
+.mceToolbar table {
+    margin: 0 !important;
+    width: auto !important;
+}
+.editable-form .booleanfield {width: auto;}
+.editable-form input.datetimefield {
+    margin-left: 8px;
+    width: 80px;
+}
+.editable-form input[type="file"] {
+    width: 300px;
+}
+.editable-form div.form-group {
+    border: 0 !important;
+    line-height: 1em !important;
+    padding: 0 !important;
+    margin: .5em 0 !important;
+}
+.editable-form div.form-group:first-child {margin-top: 0px;}
+.editable-form .helptext {
+    color: #444;
+    font-size: 70%;
+    font-style: italic;
+}
+.editable-form label {
+    color: #000;
+    float: none;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.1em;
+    text-transform: capitalize;
+}
+.editable-form .action-buttons {
+    text-align: right;
+}
+
+.editable-form .btn {
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: top;
+    border-radius: 3px;
+    margin: 15px 0 0 10px;
+    width: auto;
+    border: 1px solid #CCC;
+    border-bottom-color: #B3B3B3;
+    background-color: #F5F5F5;
+    background-image: linear-gradient(to bottom, #FFF, #E6E6E6);
+    color: #333;
+    padding: 4px 12px;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+
+.editable-form .btn:hover {
+    background-image: linear-gradient(to bottom, #F1F1F1, #E6E6E6);
+}
+
+.editable-form .help-block {
+    line-height: 1;
+    margin: 0;
+    margin-bottom: 1em;
+}
+
+#exposeMask {
+    /* Prevent the lightbox mask from covering CKEditor full screen mode */
+    z-index: 9994 !important;
+}
