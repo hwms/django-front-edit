@@ -4,6 +4,7 @@ import re
 import base64
 from uuid import UUID, uuid5
 from copy import copy
+from importlib import import_module
 
 from django.template import Context
 from django.template.base import NodeList, TextNode
@@ -13,7 +14,6 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
-from django.utils.importlib import import_module
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
