@@ -33,16 +33,31 @@ beautifulsoup4 >= 4.3.2 located at: [http://www.crummy.com/software/BeautifulSou
 django-classy-tags >= 0.5.1 located at: [https://github.com/ojii/django-classy-tags][git classy] or
 [https://pypi.python.org/pypi/django-classy-tags][pypi classy].
 
+**and either one of the following:** (see `FRONT_EDIT_HTML_PARSER` setting below)
+
+html5lib >= 0.999, != 0.9999, != 1.0b5, != 0.99999, != 1.0b6 located at: [https://github.com/html5lib/html5lib-python][git html] or
+[https://pypi.python.org/pypi/html5lib][pypi html].
+
+lxml located at: [https://github.com/lxml/lxml][git lxml] or
+[https://pypi.python.org/pypi/lxml][pypi lxml]
+
 [home soup]: http://www.crummy.com/software/BeautifulSoup/
 [pypi soup]: https://pypi.python.org/pypi/beautifulsoup4/
 
 [git classy]: https://github.com/ojii/django-classy-tags
 [pypi classy]: https://pypi.python.org/pypi/django-classy-tags
 
+[git html]: https://github.com/html5lib/html5lib-python
+[pypi html]: https://pypi.python.org/pypi/html5lib
+
+[git lxml]: https://github.com/lxml/lxml
+[pypi lxml]: https://pypi.python.org/pypi/lxml
+
 ## Integration
 In your Django settings.py file insert the following in an appropriate place:
 
     ...
+    # for django >1.4 <1.8
     TEMPLATE_CONTEXT_PROCESSORS = [
         'django.contrib.auth.context_processors.auth',
         ...
@@ -50,9 +65,30 @@ In your Django settings.py file insert the following in an appropriate place:
         ...
         'front_edit.context_processors.defer_edit'
     ]
+    # or for django >1.8
+    TEMPLATES = [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [],
+            'OPTIONS': {
+                'context_processors': [
+                    'django.contrib.auth.context_processors.auth',
+                    ...
+                    'django.template.context_processors.request',
+                    ...
+                    'front_edit.context_processors.defer_edit'
+                ]
+            }
+        }
+    ]
     ...
 
     INSTALLED_APPS = [
+        ...
+        'django.contrib.contenttypes',
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.sessions',
         ...
         'front_edit',
         ...
@@ -74,7 +110,7 @@ This app uses template tags for all its functionality.
 
 ### Template tags
 
-Make sure to load up front\_edit\_tags in your template.
+Make sure to load up `front_edit_tags` in your template.
 
 #### Edit...EndEdit
 
@@ -219,7 +255,6 @@ dictionary as follows:
                     'CUSTOM_FIELDS':['path.to.custom.field'],
                     ...
                     'USE_HINTS':True,
-                    'VIGENERE_KEY':'akey'
                 }
 
 ### FRONT\_EDIT\_CUSTOM\_FIELDS
@@ -240,30 +275,37 @@ templates.
 > This template is the editable. Which includes the form, edit button, and
 overlay.
 
+### FRONT\_EDIT\_HTML\_PARSER
+> **Default:** 'html5lib'
+
+> Change the html parser used by beautifulsoup. By default we use 'html5lib',
+but we also support 'lxml'. You will have to install either of those libraries.
+We do not support the builtin 'html.parser' library due to incompatibilities.
+
 ### FRONT\_EDIT\_INLINE\_EDITING\_ENABLED
 > **Default:** True
 
 > Option to disable inline editing.
 
-### JQUERY\_BACKUP
+### FRONT\_EDIT\_JQUERY\_BACKUP
 > **Default:** 'front_edit/js/jquery.min.js'
 
 > The path to the static jquery backup library if the CDN is down. The value
 > is passed through the `static` tag.
 
-### JQUERY\_BUILTIN
+### FRONT\_EDIT\_JQUERY\_BUILTIN
 > **Default:** True
 
 > Whether or not to use the builtin jquery library or rely on the library
 > already being present in the final document.
 
-### JQUERY\_CDN
+### FRONT\_EDIT\_JQUERY\_CDN
 > **Default:** '//ajax.googleapis.com/ajax/libs/jquery/'
 
 > The url to the CDN to use for jquery. The version and file name are appended.
 > i.e. path/1.11.2/jquery.min.js
 
-### JQUERY\_VERSION
+### FRONT\_EDIT\_JQUERY\_VERSION
 > **Default:** '1.11.2'
 
 > The default version of jquery to fetch from the CDN.
@@ -292,7 +334,7 @@ required when this is True.
 ### FRONT\_EDIT\_VIGENERE\_KEY
 > **Default:** None
 
-> A vigenere key used to obfuscate edit hints.
+> A vigenere key used to obfuscate edit hints. Optional.
 
 ## Custom Media and JS variables
 
