@@ -328,8 +328,7 @@ We do not support the builtin 'html.parser' library due to incompatibilities.
 ### FRONT\_EDIT\_USE\_HINTS
 > **Default:** False
 
-> Whether or not to activate the use of **EditHint** tags. **VIGENERE_KEY** is
-required when this is True.
+> Whether or not to activate the use of **EditHint** tags.
 
 ### FRONT\_EDIT\_VIGENERE\_KEY
 > **Default:** None
