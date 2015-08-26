@@ -1,6 +1,3 @@
-
-import struct
-
 FRONT_EDITED = '__front_edit_saving'
 
 def set_front_edited(instance):
@@ -36,9 +33,9 @@ class OrderedSet(collections.MutableSet):
 
     def discard(self, key):
         if key in self.map:
-            key, prev, next = self.map.pop(key)
-            prev[2] = next
-            next[1] = prev
+            key, prev, _next = self.map.pop(key)
+            prev[2] = _next
+            _next[1] = prev
 
     def __iter__(self):
         end = self.end

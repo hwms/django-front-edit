@@ -14,22 +14,22 @@ from django.views.decorators.http import require_http_methods
 from .forms import make_form
 from .utils import set_front_edited
 
-def try_cast_or_404(cast_type, input):
+def try_cast_or_404(cast_type, _input):
     ''' Used for GET variables i.e. when you expect to receive an int
         returns 404 if the cast is unsuccessful
     '''
-    assert(isinstance(cast_type,type))
+    assert isinstance(cast_type, type)
     try:
         if input is None:
             raise ValueError
-        return cast_type(input)
+        return cast_type(_input)
     except (ValueError, TypeError):
         raise http.Http404
 
 @never_cache
 @require_http_methods(('POST', 'PUT'))
 @login_required
-@user_passes_test(lambda u:u.is_staff)
+@user_passes_test(lambda u: u.is_staff)
 def front_end_update_view(request, *args, **kwargs):
     if request.is_ajax():
         user = request.user
@@ -43,7 +43,7 @@ def front_end_update_view(request, *args, **kwargs):
         pk = try_cast_or_404(str, kwargs.get('pk', None))
         fields = try_cast_or_404(str, request.POST.get('form_fields', None))
         model = ContentType.objects.get(app_label=app_label,
-            model=model_name).model_class()
+                                        model=model_name).model_class()
 
         form_class = make_form(model, fields.split(','))
         try:

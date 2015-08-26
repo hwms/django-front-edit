@@ -5,6 +5,7 @@ class FrontEditSettings(AppSettings):#pylint: disable=too-few-public-methods
     CUSTOM_FIELDS = []
     DEFER_KEY = '__front_edit_defer'
     EDITABLE_TEMPLATE = 'front_edit/includes/editable.html'
+    HTML_PARSER = 'html5lib'
     INLINE_EDITING_ENABLED = True
     JQUERY_BACKUP = 'front_edit/js/jquery.min.js'
     JQUERY_BUILTIN = True

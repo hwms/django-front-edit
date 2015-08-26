@@ -47,9 +47,6 @@ class AppSettings(object):#pylint: disable=too-few-public-methods
             master_val = self.do_mod(k, getattr(master_settings, name, val))
             # update attr in this class
             setattr(self, k, master_val)
-            # make or update individual
-            setattr(master_settings, name, master_val)
-        setattr(master_settings, master_name, self)
 
     def do_mod(self, name, val):
         """preform a modification lookup and call the function"""

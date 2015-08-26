@@ -1,3 +1,10 @@
+'''
+A front end editing app for Django.
+
+This app allows one to edit dynamic data on the front end of a website when
+logged in as a staff member. The app allows the editing of dynamic content
+within any element.
+'''
 from __future__ import unicode_literals
 
 import django

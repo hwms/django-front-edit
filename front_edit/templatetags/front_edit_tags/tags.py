@@ -17,7 +17,7 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup
 
 from classytags.core import Tag, Options
 from classytags.helpers import InclusionTag
@@ -31,16 +31,20 @@ from front_edit.utils import OrderedSet
 from . import register
 from .arguments import NonGreedyMultiValueArgument
 
+
 CP_ERROR = ("Edit tags require the use of the context processor included with "
-    "this app. Add front_edit.context_processors.edit_defer to your context "
-    "processors list in your settings.py file.")
+            "this app. Add front_edit.context_processors.edit_defer to your "
+            "context processors list in your settings.py file.")
 CF_IMPORT_ERROR = ("Could not import the custom field: {}: {}")
 CF_FIELD_ERROR = ("Could not access the media on the form field widget "
-    "for: {}: {}")
+                  "for: {}: {}")
 MM_ERROR = ("Can only edit one model per block. Attempted to edit both {} "
-    "and {}.")
-ST_LOGOUT_ERROR = ("Set FRONT_EDIT_LOGOUT_URL_NAME to the url name of your logout "
-    "view in your settings.py file: {}")
+            "and {}.")
+ST_LOGOUT_ERROR = ("Set FRONT_EDIT_LOGOUT_URL_NAME to the url name of your "
+                   "logout view in your settings.py file: {}")
+ST_PARSER_ERROR = ("'django-front-edit' is incompatible with 'html.parser', "
+                   "please set FRONT_EDIT_HTML_PARSER to 'html5lib' (default) "
+                   "or 'lxml' in your settings.py file.")
 
 MEDIA = []
 for field_path in appsettings.CUSTOM_FIELDS:
@@ -54,6 +58,11 @@ for field_path in appsettings.CUSTOM_FIELDS:
         MEDIA.append(str(field().formfield().widget.media))
     except AttributeError as e:
         raise ImproperlyConfigured(CF_FIELD_ERROR.format(field_path, e))
+
+def BS(html):
+    if appsettings.HTML_PARSER == 'html.parser':
+        raise ImproperlyConfigured(ST_PARSER_ERROR)
+    return BeautifulSoup(html, appsettings.HTML_PARSER)
 
 def edit(context, models_fields, edit_class, nodelist):
     # is this thing on?
@@ -79,7 +88,7 @@ def edit(context, models_fields, edit_class, nodelist):
         fields.append(field)
 
     if not user.has_perm('{}.change_{}'.format(model._meta.app_label,
-        model._meta.model_name)):
+                                               model._meta.model_name)):
         return nodelist.render(context)
 
     context.push()
@@ -257,15 +266,12 @@ class EditLoader(InclusionTag):
         except KeyError:
             editable_obj = None
         try:
-            logout_url=reverse(appsettings.LOGOUT_URL_NAME)
+            logout_url = reverse(appsettings.LOGOUT_URL_NAME)
         except NoReverseMatch as e:
             raise ImproperlyConfigured(ST_LOGOUT_ERROR.format(e))
         return render_to_string(appsettings.TOOLBAR_TEMPLATE,
-            dict(
-                editable_obj=editable_obj,
-                logout_url=logout_url,
-                REDIRECT_FIELD_NAME=REDIRECT_FIELD_NAME
-            ), context)
+            dict(editable_obj=editable_obj, logout_url=logout_url,
+                 REDIRECT_FIELD_NAME=REDIRECT_FIELD_NAME), context)
 
     def _make_editables(self, context, deferred):
         editables = []
@@ -357,5 +363,4 @@ def bs_root(template_html):
             new = soup.new_tag('div', **{"class":"editable"})
             new.append(root)
             root = new
-
     return root
