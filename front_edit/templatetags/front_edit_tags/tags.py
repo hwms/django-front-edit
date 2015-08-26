@@ -41,7 +41,6 @@ MM_ERROR = ("Can only edit one model per block. Attempted to edit both {} "
     "and {}.")
 ST_LOGOUT_ERROR = ("Set FRONT_EDIT_LOGOUT_URL_NAME to the url name of your logout "
     "view in your settings.py file: {}")
-VK_ERROR = ("FRONT_EDIT_VIGENERE_KEY must be set when FRONT_EDIT_USE_HINTS is True.")
 
 MEDIA = []
 for field_path in appsettings.CUSTOM_FIELDS:
@@ -138,21 +137,24 @@ def edit_link(context, admin_url, edit_class, nodelist):
     return mark_safe(str(root))
 
 if appsettings.USE_HINTS:
-    VKEY = str(appsettings.VIGENERE_KEY)
-    try:
+    VKEY = appsettings.VIGENERE_KEY
+
+    if VKEY is None:
+        ENCODE = lambda clear: clear
+        DECODE = lambda enc: enc
+    else:
+        VKEY = str(VKEY)
         LVKEY = len(VKEY)
-    except TypeError:
-        raise ImproperlyConfigured(VK_ERROR)
 
-    UNILIMIT = sys.maxunicode
+        UNILIMIT = sys.maxunicode
 
-    ENCODE = lambda clear: base64.b64encode(
-        ''.join([chr((ord(c) + ord(VKEY[i % LVKEY])) % UNILIMIT)
-                 for i, c in enumerate(clear)]).encode('utf-8'))
+        ENCODE = lambda clear: base64.b64encode(
+            ''.join([chr((ord(c) + ord(VKEY[i % LVKEY])) % UNILIMIT)
+                     for i, c in enumerate(clear)]).encode('utf-8'))
 
-    DECODE = lambda enc: ''.join([
-        chr((UNILIMIT + ord(e) - ord(VKEY[i % LVKEY])) % UNILIMIT)
-        for i, e in enumerate(base64.b64decode(enc).decode('utf-8'))])
+        DECODE = lambda enc: ''.join([
+            chr((UNILIMIT + ord(e) - ord(VKEY[i % LVKEY])) % UNILIMIT)
+            for i, e in enumerate(base64.b64decode(enc).decode('utf-8'))])
 
     @register.tag
     class EditHint(Tag):
