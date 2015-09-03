@@ -1,4 +1,4 @@
-Copyright (c) 2013, Dumbwaiter LLC <dwaiter.com> All rights reserved.
+Copyright (c) 2015, Dumbwaiter Design LLC <dwaiter.com> All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -10,8 +10,8 @@ list of conditions and the following disclaimer.
 this list of conditions and the following disclaimer in the documentation and/or
 other materials provided with the distribution.
 
-3. Neither the name of Dumbwaiter LLC nor the names of
-django-mailqueue-backend's contributors may be used to endorse or promote
+3. Neither the name of Dumbwaiter Design LLC nor the names of
+django-front-edit's contributors may be used to endorse or promote
 products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
