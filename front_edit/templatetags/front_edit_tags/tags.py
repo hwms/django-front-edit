@@ -64,86 +64,73 @@ def BS(html):
         raise ImproperlyConfigured(ST_PARSER_ERROR)
     return BeautifulSoup(html, appsettings.HTML_PARSER)
 
-def edit(context, models_fields, edit_class, nodelist):
-    # is this thing on?
-    user = context['user']
-    if not is_enabled(user):
-        return nodelist.render(context)
 
-    # make uuid stuff and check configuration
-    uuid = get_uuid(context)
-    uuid_name = ','.join(models_fields)
+def edit_html(context, models_fields, edit_class, html):
+    if not edit_check_user(context):
+        return html
+
+    edit_check_configuration(context)
 
     # get the model and fields
-    model = None
-    fields = []
-    for model_field in models_fields:
-        class_name, field = model_field.split('.')
-        if model is None:
-            model = context[class_name]
-        elif model != context[class_name]:
-            raise Exception(MM_ERROR.format(model, context[class_name]))
-        # check if field exists
-        getattr(model, field)
-        fields.append(field)
+    model, fields = edit_get_model_and_fields(context, models_fields)
 
-    if not user.has_perm('{}.change_{}'.format(model._meta.app_label,
-                                               model._meta.model_name)):
-        return nodelist.render(context)
+    if not edit_check_model(context, model):
+        return html
 
-    context.push()
-    output = str(nodelist.render(context))
-    context.pop()
+    root = bs_root(html)
 
-    root = bs_root(output)
+    editable_id = edit_make_editable_id(context, ','.join(models_fields), root)
 
-    try:
-        editable_id = root['id']
-    except KeyError:
-        editable_id = str(uuid5(uuid, uuid_name))
-        root['id'] = editable_id
-
-    context[appsettings.DEFER_KEY].append(dict(
+    edit_modify_context(
+        context,
         model=model,
         fields=fields,
         editable_id=editable_id,
-        edit_class=edit_class,
-        admin_url='',
-    ))
+        edit_class=edit_class)
 
     return mark_safe(str(root))
 
-def edit_link(context, admin_url, edit_class, nodelist):
-    # is this thing on?
-    user = context['user']
-    if not is_enabled(user):
-        return nodelist.render(context)
 
-    # make uuid stuff and check configuration
-    uuid = get_uuid(context)
-    uuid_name = admin_url
+def edit_soup(context, models_fields, edit_class, root):
+    if not edit_check_user(context):
+        return html
 
-    context.push()
-    output = str(nodelist.render(context))
-    context.pop()
+    edit_check_configuration(context)
 
-    root = bs_root(output)
+    # get the model and fields
+    model, fields = edit_get_model_and_fields(context, models_fields)
 
-    try:
-        editable_id = root['id']
-    except KeyError:
-        editable_id = str(uuid5(uuid, uuid_name))
-        root['id'] = editable_id
+    if not edit_check_model(context, model):
+        return html
 
-    context[appsettings.DEFER_KEY].append(dict(
-        model=None,
-        fields=[],
+    editable_id = edit_make_editable_id(context, ','.join(models_fields), root)
+
+    edit_modify_context(
+        context,
+        model=model,
+        fields=fields,
+        editable_id=editable_id,
+        edit_class=edit_class)
+
+
+def edit_link(context, admin_url, edit_class, html):
+    if not edit_check_user(context):
+        return html
+
+    edit_check_configuration(context)
+
+    root = bs_root(html)
+
+    editable_id = edit_make_editable_id(context, admin_url, root)
+
+    edit_modify_context(
+        context,
         editable_id=editable_id,
         edit_class=edit_class,
-        admin_url=admin_url,
-    ))
+        admin_url=admin_url)
 
     return mark_safe(str(root))
+
 
 if appsettings.USE_HINTS:
     VKEY = appsettings.VIGENERE_KEY
@@ -187,15 +174,13 @@ if appsettings.USE_HINTS:
         )
 
         def render_tag(self, context, nodelist):
-            html = nodelist.render(context)
-            user = context['user']
-            if not user.is_staff or not appsettings.INLINE_EDITING_ENABLED:
-                return html
-            soup = BS(html)
+            output = nodelist_to_html(context, nodelist)
+            if not edit_check_user(context):
+                return output
+
+            soup = BS(output)
             ctx = {}
-            models_fields = []
-            new_nodelists = []
-            results = soup.findAll('div', {'data-hint' : self.non_greedy_all})
+            results = soup.findAll(attrs={'data-hint' : self.non_greedy_all})
             for idx, result in enumerate(results):
                 hint = result.attrs['data-hint']
 
@@ -208,22 +193,15 @@ if appsettings.USE_HINTS:
                 name = '__front_edit_{}'.format(idx)
                 ctx[name] = instance
 
-                models_field = []
+                models_fields = []
                 for field in fields:
-                    models_field.append('{}.{}'.format(name, field))
-                models_fields.append(models_field)
+                    models_fields.append('{}.{}'.format(name, field))
 
-                new_nodelist = NodeList()
-                new_nodelist.append(TextNode(str(result)))
-                new_nodelists.append(new_nodelist)
+                context.update(ctx)
+                edit_soup(context, models_fields, '', result)
+                context.pop()
+            return mark_safe(str(soup))
 
-            outputs = []
-            context.update(ctx)
-            for i in range(len(new_nodelists)):
-                output = edit(context, models_fields[i], '', new_nodelists[i])
-                outputs.append(output)
-            context.pop()
-            return mark_safe(''.join(outputs))
 
 @register.tag
 class Edit(Tag):
@@ -234,7 +212,8 @@ class Edit(Tag):
     )
 
     def render_tag(self, context, models_fields, edit_class, nodelist):
-        return edit(context, models_fields, edit_class, nodelist)
+        output = nodelist_to_html(context, nodelist)
+        return edit_html(context, models_fields, edit_class, output)
 
 @register.tag
 class EditLink(Tag):
@@ -245,7 +224,8 @@ class EditLink(Tag):
     )
 
     def render_tag(self, context, admin_url, edit_class, nodelist):
-        return edit_link(context, admin_url, edit_class, nodelist)
+        output = nodelist_to_html(context, nodelist)
+        return edit_link(context, admin_url, edit_class, output)
 
 @register.tag
 class EditLoader(InclusionTag):
@@ -330,10 +310,69 @@ def is_enabled(user):
     return user.is_staff and appsettings.INLINE_EDITING_ENABLED
 
 def get_uuid(context):
-    try:
-        return UUID(int=len(context[appsettings.DEFER_KEY]))
-    except (KeyError, ValueError):
+    return UUID(int=len(context[appsettings.DEFER_KEY]))
+
+
+def nodelist_to_html(context, nodelist):
+    context.push()
+    output = str(nodelist.render(context))
+    context.pop()
+    return output
+
+
+def edit_check_user(context):
+    '''is this thing on?'''
+    return is_enabled(context['user'])
+
+
+def edit_check_configuration(context):
+    if appsettings.DEFER_KEY not in context:
         raise ImproperlyConfigured(CP_ERROR)
+
+
+def edit_check_model(context, model):
+    '''check user permission'''
+    return context['user'].has_perm(
+        '{opts.app_label}.change_{opts.model_name}'.format(opts=model._meta))
+
+
+def edit_get_model_and_fields(context, models_fields):
+    '''Get the model and fields'''
+    model = None
+    fields = []
+    for model_field in models_fields:
+        class_name, field = model_field.split('.')
+        if model is None:
+            model = context[class_name]
+        elif model != context[class_name]:
+            raise Exception(MM_ERROR.format(model, context[class_name]))
+        # check if field exists
+        getattr(model, field)
+        fields.append(field)
+    return model, fields
+
+
+def edit_make_editable_id(context, uuid_name, root):
+    try:
+        editable_id = root['id']
+    except KeyError:
+        editable_id = str(uuid5(get_uuid(context), uuid_name))
+        root['id'] = editable_id
+    return editable_id
+
+
+def edit_modify_context(context, model=None, fields=None, editable_id=None,
+                        edit_class='', admin_url=''):
+    if fields is None:
+        fields = []
+    context[appsettings.DEFER_KEY].append(dict(
+        model=model,
+        fields=fields,
+        editable_id=editable_id,
+        edit_class=edit_class,
+        admin_url='',
+    ))
+
 
 def bs_root(template_html):
     """Get the id, or insert id, or wrap the whole thing"""
