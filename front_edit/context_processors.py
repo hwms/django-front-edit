@@ -1,2 +1,5 @@
 from .settings import appsettings
-defer_edit = lambda r: {appsettings.DEFER_KEY:[]}
+
+
+def defer_edit(request):
+    return {appsettings.DEFER_KEY: []}

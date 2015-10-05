@@ -6,15 +6,12 @@ from uuid import UUID, uuid5
 from copy import copy
 from importlib import import_module
 
-from django.template import Context
-from django.template.base import NodeList, TextNode
 from django.template.loader import render_to_string
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
-from django.utils.functional import lazy
 from django.utils.html import format_html
 
 from bs4 import BeautifulSoup
@@ -23,7 +20,7 @@ from classytags.core import Tag, Options
 from classytags.helpers import InclusionTag
 from classytags.arguments import Argument
 
-from front_edit.compat import str, range, chr
+from front_edit.compat import str, chr
 from front_edit.forms import make_form
 from front_edit.settings import appsettings
 from front_edit.utils import OrderedSet
@@ -59,10 +56,12 @@ for field_path in appsettings.CUSTOM_FIELDS:
     except AttributeError as e:
         raise ImproperlyConfigured(CF_FIELD_ERROR.format(field_path, e))
 
-def BS(html):
-    if appsettings.HTML_PARSER == 'html.parser':
+if appsettings.HTML_PARSER == 'html.parser':
+    def BS(html):
         raise ImproperlyConfigured(ST_PARSER_ERROR)
-    return BeautifulSoup(html, appsettings.HTML_PARSER)
+else:
+    def BS(html):
+        return BeautifulSoup(html, appsettings.HTML_PARSER)
 
 
 def edit_html(context, models_fields, edit_class, html):
@@ -136,21 +135,27 @@ if appsettings.USE_HINTS:
     VKEY = appsettings.VIGENERE_KEY
 
     if VKEY is None:
-        ENCODE = lambda clear: clear
-        DECODE = lambda enc: enc
+        def encode(clear):
+            return clear
+
+        def decode(enc):
+            return enc
     else:
         VKEY = str(VKEY)
         LVKEY = len(VKEY)
 
         UNILIMIT = sys.maxunicode
 
-        ENCODE = lambda clear: base64.b64encode(
-            ''.join([chr((ord(c) + ord(VKEY[i % LVKEY])) % UNILIMIT)
-                     for i, c in enumerate(clear)]).encode('utf-8'))
+        def encode(clear):
+            return base64.b64encode(
+                ''.join([chr((ord(c) + ord(VKEY[i % LVKEY])) % UNILIMIT)
+                         for i, c in enumerate(clear)]).encode('utf-8'))
 
-        DECODE = lambda enc: ''.join([
-            chr((UNILIMIT + ord(e) - ord(VKEY[i % LVKEY])) % UNILIMIT)
-            for i, e in enumerate(base64.b64decode(enc).decode('utf-8'))])
+        def decode(enc):
+            ''.join([
+                chr((UNILIMIT + ord(e) - ord(VKEY[i % LVKEY])) % UNILIMIT)
+                for i, e in enumerate(
+                    base64.b64decode(enc).decode('utf-8'))])
 
     @register.tag
     class EditHint(Tag):
@@ -159,16 +164,17 @@ if appsettings.USE_HINTS:
             Argument('fields'),
             Argument('edit_class', default=None, required=False),
         )
+
         def render_tag(self, context, instance, fields, edit_class):
             ct_id = ContentType.objects.get_for_model(instance).id
             id = instance.id
-            hint = ENCODE('{}:{}:{}:{}'.format(ct_id, id, fields,
+            hint = encode('{}:{}:{}:{}'.format(ct_id, id, fields,
                                                edit_class or ''))
             return format_html('data-hint="{}"', hint)
 
     @register.tag
     class EditWithHints(Tag):
-        non_greedy_all = re.compile(".*")
+        non_greedy_all = re.compile(r'.*')
         options = Options(
             blocks=[('endedit_with_hints', 'nodelist')],
         )
@@ -180,11 +186,11 @@ if appsettings.USE_HINTS:
 
             soup = BS(output)
             ctx = {}
-            results = soup.findAll(attrs={'data-hint' : self.non_greedy_all})
+            results = soup.findAll(attrs={'data-hint': self.non_greedy_all})
             for idx, result in enumerate(results):
                 hint = result.attrs['data-hint']
 
-                ct_id, id, fields, edit_class = DECODE(hint).split(':')
+                ct_id, id, fields, edit_class = decode(hint).split(':')
                 fields = fields.split(',')
 
                 model_class = ContentType.objects.get(id=ct_id).model_class()
@@ -215,6 +221,7 @@ class Edit(Tag):
         output = nodelist_to_html(context, nodelist)
         return edit_html(context, models_fields, edit_class, output)
 
+
 @register.tag
 class EditLink(Tag):
     options = Options(
@@ -226,6 +233,7 @@ class EditLink(Tag):
     def render_tag(self, context, admin_url, edit_class, nodelist):
         output = nodelist_to_html(context, nodelist)
         return edit_link(context, admin_url, edit_class, output)
+
 
 @register.tag
 class EditLoader(InclusionTag):
@@ -249,7 +257,8 @@ class EditLoader(InclusionTag):
             logout_url = reverse(appsettings.LOGOUT_URL_NAME)
         except NoReverseMatch as e:
             raise ImproperlyConfigured(ST_LOGOUT_ERROR.format(e))
-        return render_to_string(appsettings.TOOLBAR_TEMPLATE,
+        return render_to_string(
+            appsettings.TOOLBAR_TEMPLATE,
             dict(editable_obj=editable_obj, logout_url=logout_url,
                  REDIRECT_FIELD_NAME=REDIRECT_FIELD_NAME), context)
 
@@ -264,10 +273,11 @@ class EditLoader(InclusionTag):
                 'admin_url': admin_url,
             }
 
-            if model != None:
+            if model is not None:
                 model_class = model.__class__
                 form_for_fields = make_form(model_class, defer['fields'])(
-                    instance=model, auto_id='{}_%s'.format(defer['editable_id']))
+                    instance=model, auto_id='{}_%s'.format(
+                        defer['editable_id']))
                 try:
                     self.media.add(str(form_for_fields.media))
                 except AttributeError:
@@ -309,6 +319,7 @@ class EditLoader(InclusionTag):
 def is_enabled(user):
     return user.is_staff and appsettings.INLINE_EDITING_ENABLED
 
+
 def get_uuid(context):
     return UUID(int=len(context[appsettings.DEFER_KEY]))
 
@@ -321,7 +332,7 @@ def nodelist_to_html(context, nodelist):
 
 
 def edit_check_user(context):
-    '''is this thing on?'''
+    """is this thing on?"""
     return is_enabled(context['user'])
 
 
@@ -331,13 +342,13 @@ def edit_check_configuration(context):
 
 
 def edit_check_model(context, model):
-    '''check user permission'''
+    """check user permission"""
     return context['user'].has_perm(
         '{opts.app_label}.change_{opts.model_name}'.format(opts=model._meta))
 
 
 def edit_get_model_and_fields(context, models_fields):
-    '''Get the model and fields'''
+    """Get the model and fields"""
     model = None
     fields = []
     for model_field in models_fields:
@@ -389,7 +400,7 @@ def bs_root(template_html):
 
     if root is None:
         # not sure what you're expecting us to do, you gave us nothing
-        root = soup.new_tag('div', **{"class":"editable"})
+        root = soup.new_tag('div', **{'class': 'editable'})
     elif root.findNextSibling() is not None:
         # we are not alone in here
         if parent is not None:
@@ -399,7 +410,7 @@ def bs_root(template_html):
             root = parent
         else:
             # make a new parent
-            new = soup.new_tag('div', **{"class":"editable"})
+            new = soup.new_tag('div', **{'class': 'editable'})
             new.append(root)
             root = new
     return root

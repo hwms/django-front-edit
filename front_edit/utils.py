@@ -1,14 +1,17 @@
+import collections
 FRONT_EDITED = '__front_edit_saving'
+
 
 def set_front_edited(instance):
     '''for non-recursive cache busting'''
     setattr(instance, FRONT_EDITED, None)
 
+
 def was_front_edited(instance):
     '''for non-recursive cache busting'''
     return hasattr(instance, FRONT_EDITED)
 
-import collections
+
 # MITL - http://code.activestate.com/recipes/576694/
 class OrderedSet(collections.MutableSet):
 

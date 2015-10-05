@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from classytags.arguments import MultiValueArgument
 
+
 class NonGreedyMultiValueArgument(MultiValueArgument):
     def parse(self, parser, token, tagname, kwargs):
         """

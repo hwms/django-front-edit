@@ -10,8 +10,9 @@ from .compat import str, viewitems
 CAMELCASE = re.compile(r'(.)([A-Z])([^A-Z])')
 ENDSETTINGS = re.compile(r'(.*?)(_SETTINGS)')
 
+
 @python_2_unicode_compatible
-class Default(object):#pylint: disable=too-few-public-methods
+class Default(object):  # pylint: disable=too-few-public-methods
     """A default AppSetting that looks into the django.conf.settings file"""
     def __init__(self, name, fallback):
         """pass the name of the setting and a fallback value"""
@@ -25,7 +26,8 @@ class Default(object):#pylint: disable=too-few-public-methods
     def __str__(self):
         return str(self.get())
 
-class AppSettings(object):#pylint: disable=too-few-public-methods
+
+class AppSettings(object):  # pylint: disable=too-few-public-methods
     """AppSettings can be defined in a subclass using class variables"""
     def __init__(self):
         """setup the app settings"""
@@ -33,8 +35,8 @@ class AppSettings(object):#pylint: disable=too-few-public-methods
         prefix = ENDSETTINGS.sub(r'\1', prefix)
         setting = dict([(attr, getattr(self, attr))
                         for attr in dir(self)
-                        if not attr.startswith("_")
-                        and not callable(getattr(self, attr))])
+                        if not attr.startswith("_") and not
+                        callable(getattr(self, attr))])
         master_name = '{}_SETTINGS'.format(prefix)
         # get overrides in dict form
         setting.update(getattr(master_settings, master_name, dict()))
@@ -57,12 +59,14 @@ class AppSettings(object):#pylint: disable=too-few-public-methods
             self.__class__.__name__,
             dict([(attr, getattr(self, attr))
                   for attr in dir(self)
-                  if not attr.startswith("_")
-                  and not callable(getattr(self, attr))]))
+                  if not attr.startswith("_") and not
+                  callable(getattr(self, attr))]))
+
 
 def override_appsettings(**settings_kwargs):
     """override an appsetting, used for unit testing"""
     from .settings import appsettings
+
     def wrap(func):
         """receive the func"""
         @wraps(func)

@@ -1,6 +1,7 @@
 from .conf import AppSettings
 
-class FrontEditSettings(AppSettings):#pylint: disable=too-few-public-methods
+
+class FrontEditSettings(AppSettings):  # pylint: disable=too-few-public-methods
     """ Default settings for this app"""
     CUSTOM_FIELDS = []
     DEFER_KEY = '__front_edit_defer'
@@ -16,5 +17,4 @@ class FrontEditSettings(AppSettings):#pylint: disable=too-few-public-methods
     TOOLBAR_TEMPLATE = 'front_edit/includes/toolbar.html'
     USE_HINTS = False
     VIGENERE_KEY = None
-
-appsettings = FrontEditSettings()#pylint: disable=invalid-name
+appsettings = FrontEditSettings()  # pylint: disable=invalid-name

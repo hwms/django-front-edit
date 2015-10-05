@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from .forms import make_form
 from .utils import set_front_edited
 
+
 def try_cast_or_404(cast_type, _input):
     ''' Used for GET variables i.e. when you expect to receive an int
         returns 404 if the cast is unsuccessful
@@ -25,6 +26,7 @@ def try_cast_or_404(cast_type, _input):
         return cast_type(_input)
     except (ValueError, TypeError):
         raise http.Http404
+
 
 @never_cache
 @require_http_methods(('POST', 'PUT'))
