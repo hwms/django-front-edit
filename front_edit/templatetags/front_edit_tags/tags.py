@@ -12,7 +12,9 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
+from django.utils.six.moves.urllib import parse as urlparse
 from django.utils.html import format_html
+from django.utils.module_loading import import_string
 
 from bs4 import BeautifulSoup
 
@@ -20,7 +22,7 @@ from classytags.core import Tag, Options
 from classytags.helpers import InclusionTag
 from classytags.arguments import Argument
 
-from front_edit.compat import str, chr
+from front_edit.compat import str, chr, unpack
 from front_edit.forms import make_form
 from front_edit.settings import appsettings
 from front_edit.utils import OrderedSet
@@ -44,17 +46,21 @@ ST_PARSER_ERROR = ("'django-front-edit' is incompatible with 'html.parser', "
                    "or 'lxml' in your settings.py file.")
 
 MEDIA = []
-for field_path in appsettings.CUSTOM_FIELDS:
-    try:
-        module_path, field_name = field_path.rsplit('.', 1)
-        module = import_module(module_path)
-        field = getattr(module, field_name)
-    except (ValueError, ImportError, AttributeError) as e:
-        raise ImportError(CF_IMPORT_ERROR.format(field_path, e))
-    try:
-        MEDIA.append(str(field().formfield().widget.media))
-    except AttributeError as e:
-        raise ImproperlyConfigured(CF_FIELD_ERROR.format(field_path, e))
+
+
+def startup():
+    for field_path in appsettings.CUSTOM_FIELDS:
+        try:
+            module_path, field_name = field_path.rsplit('.', 1)
+            module = import_module(module_path)
+            field = getattr(module, field_name)
+        except (ValueError, ImportError, AttributeError) as e:
+            raise ImportError(CF_IMPORT_ERROR.format(field_path, e))
+        try:
+            MEDIA.append(str(field().formfield().widget.media))
+        except AttributeError as e:
+            raise ImproperlyConfigured(CF_FIELD_ERROR.format(field_path, e))
+startup()
 
 if appsettings.HTML_PARSER == 'html.parser':
     def BS(html):
@@ -71,7 +77,7 @@ def edit_html(context, models_fields, edit_class, html):
     edit_check_configuration(context)
 
     # get the model and fields
-    model, fields = edit_get_model_and_fields(context, models_fields)
+    model, fields, widgets = edit_get_model_and_fields(context, models_fields)
 
     if not edit_check_model(context, model):
         return html
@@ -84,6 +90,7 @@ def edit_html(context, models_fields, edit_class, html):
         context,
         model=model,
         fields=fields,
+        widgets=widgets,
         editable_id=editable_id,
         edit_class=edit_class)
 
@@ -97,7 +104,7 @@ def edit_soup(context, models_fields, edit_class, root):
     edit_check_configuration(context)
 
     # get the model and fields
-    model, fields = edit_get_model_and_fields(context, models_fields)
+    model, fields, widgets = edit_get_model_and_fields(context, models_fields)
 
     if not edit_check_model(context, model):
         return html
@@ -108,6 +115,7 @@ def edit_soup(context, models_fields, edit_class, root):
         context,
         model=model,
         fields=fields,
+        widgets=widgets,
         editable_id=editable_id,
         edit_class=edit_class)
 
@@ -167,8 +175,8 @@ if appsettings.USE_HINTS:
 
         def render_tag(self, context, instance, fields, edit_class):
             ct_id = ContentType.objects.get_for_model(instance).id
-            id = instance.id
-            hint = encode('{}:{}:{}:{}'.format(ct_id, id, fields,
+            id_ = instance.id
+            hint = encode('{}:{}:{}:{}'.format(ct_id, id_, fields,
                                                edit_class or ''))
             return format_html('data-hint="{}"', hint)
 
@@ -190,11 +198,11 @@ if appsettings.USE_HINTS:
             for idx, result in enumerate(results):
                 hint = result.attrs['data-hint']
 
-                ct_id, id, fields, edit_class = decode(hint).split(':')
+                ct_id, id_, fields, edit_class = decode(hint).split(':')
                 fields = fields.split(',')
 
                 model_class = ContentType.objects.get(id=ct_id).model_class()
-                instance = model_class.objects.get(id=id)
+                instance = model_class.objects.get(id=id_)
 
                 name = '__front_edit_{}'.format(idx)
                 ctx[name] = instance
@@ -275,9 +283,10 @@ class EditLoader(InclusionTag):
 
             if model is not None:
                 model_class = model.__class__
-                form_for_fields = make_form(model_class, defer['fields'])(
-                    instance=model, auto_id='{}_%s'.format(
-                        defer['editable_id']))
+                form_for_fields = make_form(
+                    model_class, defer['fields'], defer['widgets'])(
+                        instance=model, auto_id='{}_%s'.format(
+                            defer['editable_id']))
                 try:
                     self.media.add(str(form_for_fields.media))
                 except AttributeError:
@@ -351,8 +360,18 @@ def edit_get_model_and_fields(context, models_fields):
     """Get the model and fields"""
     model = None
     fields = []
+    widgets = {}
     for model_field in models_fields:
+        model_field, options = unpack(model_field.split(':', 1))
         class_name, field = model_field.split('.')
+        if options is not None and len(options) > 0:
+            options = urlparse.parse_qs(options[1:])
+            if 'widget' in options:
+                widget = options['widget'][0]
+                if widget.find('.') == -1:
+                    widget = 'django.forms.{}'.format(widget)
+                widget = import_string(widget)
+                widgets[field] = widget
         if model is None:
             model = context[class_name]
         elif model != context[class_name]:
@@ -360,7 +379,7 @@ def edit_get_model_and_fields(context, models_fields):
         # check if field exists
         getattr(model, field)
         fields.append(field)
-    return model, fields
+    return model, fields, widgets
 
 
 def edit_make_editable_id(context, uuid_name, root):
@@ -372,13 +391,14 @@ def edit_make_editable_id(context, uuid_name, root):
     return editable_id
 
 
-def edit_modify_context(context, model=None, fields=None, editable_id=None,
-                        edit_class='', admin_url=''):
+def edit_modify_context(context, model=None, fields=None, widgets=None,
+                        editable_id=None, edit_class='', admin_url=''):
     if fields is None:
         fields = []
     context[appsettings.DEFER_KEY].append(dict(
         model=model,
         fields=fields,
+        widgets=widgets,
         editable_id=editable_id,
         edit_class=edit_class,
         admin_url='',

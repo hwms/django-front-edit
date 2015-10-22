@@ -3,7 +3,9 @@ from django.utils.encoding import smart_str
 from django import forms
 
 
-def make_form(edit_class, fields):
+def make_form(edit_class, fields, widgets):
+    if len(widgets) == 0:
+        widgets = None
     return type(
         smart_str('EditFormFor{}'.format(edit_class.__name__)),
         (forms.ModelForm,),
@@ -11,6 +13,6 @@ def make_form(edit_class, fields):
             form_fields=forms.CharField(
                 initial=','.join(fields), widget=forms.HiddenInput()),
             Meta=type(smart_str('Meta'), (object,),
-                      dict(model=edit_class, fields=fields))
+                      dict(model=edit_class, fields=fields, widgets=widgets))
         )
     )
