@@ -14,7 +14,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.utils.six.moves.urllib import parse as urlparse
 from django.utils.html import format_html
-from django.utils.module_loading import import_string
 
 from bs4 import BeautifulSoup
 
@@ -370,7 +369,6 @@ def edit_get_model_and_fields(context, models_fields):
                 widget = options['widget'][0]
                 if widget.find('.') == -1:
                     widget = 'django.forms.{}'.format(widget)
-                widget = import_string(widget)
                 widgets[field] = widget
         if model is None:
             model = context[class_name]

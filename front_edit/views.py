@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from .compat import str
 
-from json import dumps as json_dumps
+import json
 
 from django import http
 from django.contrib.contenttypes.models import ContentType
@@ -44,10 +44,11 @@ def front_end_update_view(request, *args, **kwargs):
 
         pk = try_cast_or_404(str, kwargs.get('pk', None))
         fields = try_cast_or_404(str, request.POST.get('form_fields', None))
+        widgets = json.loads(request.POST.get('form_widgets', 'null'))
         model = ContentType.objects.get(app_label=app_label,
                                         model=model_name).model_class()
 
-        form_class = make_form(model, fields.split(','))
+        form_class = make_form(model, fields.split(','), widgets)
         try:
             instance = model.objects.get(pk=pk)
             # for non-recursive cache busting
@@ -70,5 +71,5 @@ def front_end_update_view(request, *args, **kwargs):
         response_kwargs = dict(
             content_type='application/json'
         )
-        return http.HttpResponse(json_dumps(kwargs), **response_kwargs)
+        return http.HttpResponse(json.dumps(kwargs), **response_kwargs)
     return http.HttpResponseBadRequest()
