@@ -10,9 +10,9 @@ from .compat import viewitems
 
 def make_form(edit_class, fields, widgets):
     field_widgets = None
-    if len(widgets) == 0:
-        widgets = None
-    else:
+    if widgets is None:
+        widgets = {}
+    elif len(widgets) > 0:
         field_widgets = {k:import_string(v) for k, v in viewitems(widgets)}
     return type(
         smart_str('EditFormFor{}'.format(edit_class.__name__)),

@@ -44,7 +44,7 @@ def front_end_update_view(request, *args, **kwargs):
 
         pk = try_cast_or_404(str, kwargs.get('pk', None))
         fields = try_cast_or_404(str, request.POST.get('form_fields', None))
-        widgets = json.loads(request.POST.get('form_widgets', 'null'))
+        widgets = json.loads(request.POST.get('form_widgets', '{}'))
         model = ContentType.objects.get(app_label=app_label,
                                         model=model_name).model_class()
 
