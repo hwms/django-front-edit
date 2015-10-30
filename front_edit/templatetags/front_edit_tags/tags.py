@@ -393,13 +393,14 @@ def edit_modify_context(context, model=None, fields=None, widgets=None,
                         editable_id=None, edit_class='', admin_url=''):
     if fields is None:
         fields = []
+
     context[appsettings.DEFER_KEY].append(dict(
         model=model,
         fields=fields,
         widgets=widgets,
         editable_id=editable_id,
         edit_class=edit_class,
-        admin_url='',
+        admin_url=admin_url,
     ))
 
 
