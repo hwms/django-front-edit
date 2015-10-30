@@ -15,7 +15,7 @@ from django.utils.safestring import mark_safe
 from django.utils.six.moves.urllib import parse as urlparse
 from django.utils.html import format_html
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag as BSTag
 
 from classytags.core import Tag, Options
 from classytags.helpers import InclusionTag
@@ -404,31 +404,27 @@ def edit_modify_context(context, model=None, fields=None, widgets=None,
 
 
 def bs_root(template_html):
-    """Get the id, or insert id, or wrap the whole thing"""
-    soup = BS(template_html)
-    parent = None
-    if soup.body:
-        parent = soup.body
-        root = soup.body.next
-    elif soup.html:
-        parent = soup.html
-        root = soup.html.next
-    else:
-        root = soup
+    """Get the root element; wrap in a div if necessary"""
+    soup = BS(template_html.strip())
+    contents = soup.body.contents
 
-    if root is None:
-        # not sure what you're expecting us to do, you gave us nothing
-        root = soup.new_tag('div', **{'class': 'editable'})
-    elif root.findNextSibling() is not None:
-        # we are not alone in here
-        if parent is not None:
-            # set parent as root
-            parent.name = 'div'
-            parent['class'] = 'editable'
-            root = parent
-        else:
-            # make a new parent
-            new = soup.new_tag('div', **{'class': 'editable'})
-            new.append(root)
-            root = new
-    return root
+    if len(contents) == 1 and isinstance(contents[0], BSTag):
+        # Use existing element
+        return bs_add_classes(contents[0], ['editable'])
+    else:
+        # Wrap contents
+        wrapper = soup.new_tag('div', **{'class': 'editable'})
+
+        for content in contents:
+            wrapper.append(content)
+
+        return wrapper
+
+
+def bs_add_classes(element, classes):
+    try:
+        element['class'].extend(classes)
+    except KeyError:
+        element['class'] = copy(classes)
+
+    return element
