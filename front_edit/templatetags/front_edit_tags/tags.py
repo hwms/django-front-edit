@@ -405,7 +405,7 @@ def edit_modify_context(context, model=None, fields=None, widgets=None,
 
 def bs_root(template_html):
     """Get the root element; wrap in a div if necessary"""
-    soup = BS(template_html.strip())
+    soup = BS('<body>{}</body>'.format(template_html.strip()))
     contents = soup.body.contents
 
     if len(contents) == 1 and isinstance(contents[0], BSTag):
